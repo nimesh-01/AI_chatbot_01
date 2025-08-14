@@ -4,13 +4,13 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const httpServer = createServer(app);
 const generateRes = require('./src/service/ai.service')
-const io = new Server(httpServer, {
-    // cors: {
-    //     origin: "http://localhost:5173", // your frontend URL
-    //     methods: ["GET", "POST"]
-    // }
-});
 const cors = require("cors");
+
+const io = new Server(httpServer, {
+    cors: {
+        origin: "http://localhost:5173", // your frontend URL
+    }
+});
 app.use(cors());
 const chathistory = []
 io.on("connection", (socket) => {
