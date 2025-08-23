@@ -3,7 +3,7 @@ import { Send, Moon, Sun } from "lucide-react";
 import { io } from "socket.io-client";
 
 // Connect to backend Socket.IO server
-const socket = io(import.meta.env.BACKEND_URL); // change to your backend URL if needed
+const socket = io("http://localhost:3000"); // change to your backend URL if needed
 
 const App = () => {
   const [messages, setMessages] = useState([
