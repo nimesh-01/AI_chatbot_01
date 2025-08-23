@@ -3,7 +3,7 @@ import { Send, Moon, Sun } from "lucide-react";
 import { io } from "socket.io-client";
 
 // Connect to backend Socket.IO server
-const socket = io(import.meta.env.VITE_SOCKET_URL);
+const socket = io(import.meta.env.VITE_BACKEND_URL);
 
 const App = () => {
   const [messages, setMessages] = useState([
