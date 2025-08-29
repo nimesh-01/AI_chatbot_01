@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 import AIResponse from "./AIResponse";
 
 // Connect to backend Socket.IO server
-const socket = io("http://localhost:3000");
+const socket = io(import.meta.env.VITE_BACKEND_URL);
 
 const App = () => {
   const [messages, setMessages] = useState([
