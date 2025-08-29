@@ -1,0 +1,20 @@
+/* Light theme (default) */
+:root {
+  --bg-color: #e0e0e0;    /* soft gray background (instead of pure white) */
+  --card-color: #eeeeee;  /* still white for cards, keeps contrast */
+  --text-color: #111827;  /* darker text for readability */
+  --input-bg: #f9fafb;    /* very light gray instead of pure white */
+  --input-border: #cbd5e1; /* softer border gray */
+}
+
+/* Dark theme */
+:root[data-theme="dark"] {
+  --bg-color: #111827;   /* dark background */
+  --card-color: #1f2937; /* dark card */
+  --text-color: #f9fafb; /* light text */
+  --input-bg: #374151;
+  --input-border: #4b5563;
+}
+body, main, header, footer, div, input, textarea {
+  transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+}

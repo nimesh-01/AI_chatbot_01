@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Send, Moon, Sun } from "lucide-react";
 import { io } from "socket.io-client";
+import AIResponse from "./AIResponse";
 
 // Connect to backend Socket.IO server
-const socket = io(import.meta.env.VITE_BACKEND_URL);
+const socket = io("http://localhost:3000");
 
 const App = () => {
   const [messages, setMessages] = useState([
@@ -13,35 +14,9 @@ const App = () => {
   const [darkMode, setDarkMode] = useState(false);
   const messagesEndRef = useRef(null);
 
-  // Load theme from localStorage
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
-      setDarkMode(true);
-      document.documentElement.classList.add("dark");
-    }
-  }, []);
-
-  // Apply theme to HTML tag & save to localStorage
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
-    }
-  }, [darkMode]);
-
-  // Auto-scroll to bottom
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  // Listen for AI responses from backend
   useEffect(() => {
     socket.on("ai-msg", (data) => {
-      typeMessage(data.data); // Typing effect
+      typeMessage(data); // Typing effect
     });
 
     return () => {
@@ -49,7 +24,34 @@ const App = () => {
     };
   }, []);
 
-  // Function to simulate typing effect
+  // Load theme from localStorage
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      setDarkMode(true);
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  }, []);
+
+  // Apply theme (updates data-theme attr)
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.setAttribute("data-theme", "dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.setAttribute("data-theme", "light");
+      localStorage.setItem("theme", "light");
+    }
+  }, [darkMode]);
+
+  // Auto-scroll
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Typing effect
   const typeMessage = (fullText) => {
     let index = -1;
     const interval = setInterval(() => {
@@ -74,7 +76,7 @@ const App = () => {
           )
         );
       }
-    }, 5); // Adjust speed here
+    }, 5);
   };
 
   const handleSend = () => {
@@ -93,56 +95,98 @@ const App = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
+    <div
+      className="flex flex-col h-screen"
+      style={{
+        backgroundColor: "var(--bg-color)",
+        color: "var(--text-color)",
+      }}
+    >
       {/* Header */}
-      <header className="flex items-center justify-between bg-blue-600 dark:bg-gray-800 text-white p-4 text-lg font-semibold shadow transition-colors duration-300">
+      <header
+        className="flex items-center justify-between p-4 text-lg font-semibold shadow"
+        style={{ backgroundColor: "var(--card-color)", color: "var(--text-color)" }}
+      >
         AI Chatbot
         <button
           onClick={() => setDarkMode(!darkMode)}
-          className="p-2 rounded-lg bg-blue-500 hover:bg-blue-700 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors duration-300"
+          className="p-2 rounded-lg"
+          style={{
+            backgroundColor: "var(--input-bg)",
+            border: `1px solid var(--input-border)`,
+          }}
         >
           {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
       </header>
 
       {/* Chat Area */}
-      <main className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
-        {messages.map((msg, idx) => (
-          <div
-            key={idx}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"
-              }`}
-          >
+      <main className="flex-1 overflow-y-auto scrollbar-hide p-4 flex justify-center">
+        <div className="w-full max-w-3xl space-y-4">
+          {messages.map((msg, idx) => (
             <div
-              className={`max-w-xs md:max-w-md px-4 py-2 rounded-lg shadow transition-colors duration-300 ${msg.role === "user"
-                  ? "bg-blue-500 text-white"
-                  : "bg-white text-gray-800 border border-gray-300 dark:bg-gray-800 dark:text-gray-100 dark:border-gray-700"
-                }`}
+              key={idx}
+              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
-              {msg.content}
-              {msg.typing && <span className="animate-pulse">▋</span>}
+              <div
+                className="px-4 py-2 rounded-lg shadow"
+                style={{
+                  backgroundColor:
+                    msg.role === "user" ? "#3b82f6" : "var(--card-color)",
+                  color: msg.role === "user" ? "#fff" : "var(--text-color)",
+                  border:
+                    msg.role === "ai"
+                      ? `1px solid var(--input-border)`
+                      : "none",
+                  maxWidth: "75%",
+                }}
+              >
+                {msg.role === "ai" ? (
+                  <>
+                    <AIResponse response={msg.content} />
+                    {msg.typing && <span className="animate-pulse">▋</span>}
+                  </>
+                ) : (
+                  msg.content
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
       </main>
 
+
       {/* Input Area */}
-      <footer className="p-4 bg-white dark:bg-gray-800 border-t border-gray-300 dark:border-gray-700 flex items-center gap-2 transition-colors duration-300 ">
-        <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          rows={1}
-          placeholder="Type your message..."
-          className="flex-1  scrollbar-hide overflow-y-auto resize-none p-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 text-sm md:text-base bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100 transition-colors duration-300"
-        />
-        <button
-          onClick={handleSend}
-          className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg flex items-center justify-center transition-colors duration-300"
-        >
-          <Send className="w-5 h-5" />
-        </button>
+      <footer
+        className="p-4 flex justify-center border-t"
+        style={{
+          backgroundColor: "var(--card-color)",
+          borderColor: "var(--input-border)",
+        }}
+      >
+        <div className="w-full max-w-3xl flex items-center gap-2">
+          <textarea
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            rows={1}
+            placeholder="Type your message..."
+            className="flex-1 p-2 rounded-lg resize-none text-sm md:text-base"
+            style={{
+              backgroundColor: "var(--input-bg)",
+              color: "var(--text-color)",
+              border: `1px solid var(--input-border)`,
+            }}
+          />
+          <button
+            onClick={handleSend}
+            className="p-2 rounded-lg text-white"
+            style={{ backgroundColor: "#3b82f6" }}
+          >
+            <Send className="w-5 h-5" />
+          </button>
+        </div>
       </footer>
     </div>
   );

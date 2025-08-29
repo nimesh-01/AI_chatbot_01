@@ -5,10 +5,13 @@ const { Server } = require("socket.io");
 const httpServer = createServer(app);
 const generateRes = require('./src/service/ai.service')
 const cors = require("cors");
+const { log } = require('console');
 
 const io = new Server(httpServer, {
     cors: {
         origin: "http://localhost:5173", // your frontend URL
+          methods: ["GET", "POST"],
+    credentials: true,
     }
 });
 app.use(cors());
@@ -19,6 +22,7 @@ io.on("connection", (socket) => {
         console.log("user disconnected successfully ");
     })
     socket.on("message", async (prompt) => {
+        
         chathistory.push({
             role: "user",
             parts: [{ text: prompt.msg }]
@@ -30,7 +34,7 @@ io.on("connection", (socket) => {
             role: "model",
             parts: [{ text: data }]
         })
-        socket.emit('ai-msg', { data })
+        socket.emit('ai-msg',  data )
     })
 });
 httpServer.listen(3000, () => {
