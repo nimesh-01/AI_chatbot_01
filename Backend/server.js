@@ -9,7 +9,7 @@ const { log } = require('console');
 
 const io = new Server(httpServer, {
     cors: {
-        origin: "http://localhost:5173", // your frontend URL
+        origin: process.env.FRONTEND_URL, // your frontend URL
           methods: ["GET", "POST"],
     credentials: true,
     }
