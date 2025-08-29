@@ -9,7 +9,7 @@ const { log } = require('console');
 
 const io = new Server(httpServer, {
     cors: {
-        origin: process.env.FRONTEND_URL, // your frontend URL
+        origin: "https://ai-chatbot-01-frontend.onrender.com", // your frontend URL
           methods: ["GET", "POST"],
     credentials: true,
     }
