@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 import AIResponse from "./AIResponse";
 
 // Connect to backend Socket.IO server
-const socket = io(import.meta.env.VITE_BACKEND_URL);
+const socket = io("https://ai-chatbot-01-uq0k.onrender.com");
 
 const App = () => {
   const [messages, setMessages] = useState([
