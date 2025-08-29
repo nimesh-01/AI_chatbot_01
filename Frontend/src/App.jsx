@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Send, Moon, Sun } from "lucide-react";
+import { Send, Moon, Sun, Copy } from "lucide-react";
 import { io } from "socket.io-client";
-import AIResponse from "./AIResponse";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
 // Connect to backend Socket.IO server
 const socket = io("https://ai-chatbot-01-uq0k.onrender.com");
@@ -94,6 +95,49 @@ const App = () => {
     }
   };
 
+  // Function to parse AI response and render code blocks
+  const renderAIMessage = (content) => {
+    const regex = /```(\w+)?\n([\s\S]*?)```/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(content)) !== null) {
+      const [fullMatch, lang, code] = match;
+      const before = content.slice(lastIndex, match.index);
+      if (before) parts.push(<p key={lastIndex}>{before}</p>);
+
+      parts.push(
+        <div key={match.index} className="relative my-2">
+          <button
+            onClick={() => navigator.clipboard.writeText(code)}
+            className="absolute right-2 top-2 text-xs px-2 py-1 bg-gray-700 text-white rounded hover:bg-gray-600"
+          >
+            <Copy size={14} />
+          </button>
+          <SyntaxHighlighter
+            language={lang || "javascript"}
+            style={oneDark}
+            customStyle={{
+              borderRadius: "0.5rem",
+              padding: "1rem",
+              fontSize: "0.85rem",
+            }}
+          >
+            {code}
+          </SyntaxHighlighter>
+        </div>
+      );
+
+      lastIndex = regex.lastIndex;
+    }
+
+    const after = content.slice(lastIndex);
+    if (after) parts.push(<p key={lastIndex}>{after}</p>);
+
+    return parts;
+  };
+
   return (
     <div
       className="flex flex-col h-screen"
@@ -129,7 +173,7 @@ const App = () => {
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className="px-4 py-2 rounded-lg shadow"
+                className="px-4 py-2 rounded-lg shadow whitespace-pre-wrap"
                 style={{
                   backgroundColor:
                     msg.role === "user" ? "#3b82f6" : "var(--card-color)",
@@ -143,7 +187,7 @@ const App = () => {
               >
                 {msg.role === "ai" ? (
                   <>
-                    <AIResponse response={msg.content} />
+                    {renderAIMessage(msg.content)}
                     {msg.typing && <span className="animate-pulse">▋</span>}
                   </>
                 ) : (
@@ -155,7 +199,6 @@ const App = () => {
           <div ref={messagesEndRef} />
         </div>
       </main>
-
 
       {/* Input Area */}
       <footer
